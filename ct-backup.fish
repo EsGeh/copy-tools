@@ -188,7 +188,7 @@ end
 # output "executing: 'rsync $all_args 2>&1 | tee --append $log_file'"
 output "running: '$script_dir/copy.fish $copy_options $src $dst/running_backup'"
 
-$script_dir/copy.fish $copy_options "$src" "$dst/running_backup"
+$script_dir/ct-copy.fish $copy_options "$src" "$dst/running_backup"
 if test "$break_after" = 'copy'
 	exit
 end

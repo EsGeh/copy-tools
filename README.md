@@ -44,8 +44,8 @@ The provided scripts are basically wrappers around *rsync*.
 
 ## Provided commands
 
-- `copy.fish`: copy files with reasonable defaults
-- `backup.fish`: backup a directory to another location with reasonable defaults. SRC MUST be local, DST can be remote.
+- `ct-copy.fish`: copy files with reasonable defaults
+- `ct-backup.fish`: backup a directory to another location with reasonable defaults. SRC MUST be local, DST can be remote.
 
 ## Usage
 
@@ -53,11 +53,11 @@ The provided commands are copy tools which copy data from some `SRC` to a `DST`.
 
 - Example: Copy `A` to `B`, both local dir:
 
-		$ copy.fish /some/path/A /some/otherpath/B
+		$ ct-copy.fish /some/path/A /some/otherpath/B
 
 - Example: Copy `C` to `D`, D is a path on a remote machine reachable via ssh using username `user` at address `remote`
 
-		$ copy.fish /some/path/C user@remote:/some/otherpath/B
+		$ ct-copy.fish /some/path/C user@remote:/some/otherpath/B
 
 For further details append the the `--help` option to the command in question.
 
@@ -88,12 +88,12 @@ To run the automated tests...:
 
 - if scripts are installed into $PATH:
 
-		$ test_copy.fish
-		$ test_backup.fish
+		$ ct-test-copy.fish
+		$ ct-test-backup.fish
 
 - if scripts not in $PATH:
 
-		$ ./test/test_copy.fish -i .
-		$ ./test/test_backup.fish -i .
+		$ ./test/ct-test-copy.fish -i .
+		$ ./test/ct-test-backup.fish -i .
 
 For further details append the the `--help` option to the command in question.

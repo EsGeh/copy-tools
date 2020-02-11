@@ -2,11 +2,11 @@
 
 source (dirname (status -f))/utils/test_utils.fish
 
+
 set tests \
 	test_cmdline \
-	test_unfinished \
-	test_backup \
-	test_default_log_dir \
+	test_copy \
+	test_separate_logdir \
 	test_simulate \
 	test_exclude
 
@@ -27,50 +27,7 @@ function test_cmdline
 	and $copy_cmd --help >/dev/null
 end
 
-function test_unfinished
-	argparse \
-		"h/help" \
-		-- \
-		$argv
-	if set --query _flag_h
-		echo "copy directory but interrupt after copying"
-		return
-	end
-	set src $argv[1]
-	set dst $argv[2]
-	set config_dir $argv[3]
-	set log_dir $argv[4]
-	set current_date (date +"%F_%T")
-	set cmd \
-		$copy_cmd \
-		--break-after 'copy' \
-		--config-dir $config_dir \
-		--log-dir $log_dir \
-		$src \
-		$dst
-	run_with_output $cmd
-	if set --query verbose
-		tree_ext "$src"
-		tree_ext "$dst"
-	end
-	diff_ext "$src" "$dst/running_backup" | indent
-	or begin
-		echo "src and dst differ"
-		return 1
-	end
-	test -d $log_dir
-	or begin
-		echo "log dir not existing"
-		return 1
-	end
-	test -f "$log_dir/running_backup.log"
-	or begin
-		echo "log file not created"
-		return 1
-	end
-end
-
-function test_backup
+function test_copy
 	argparse \
 		"h/help" \
 		-- \
@@ -82,12 +39,10 @@ function test_backup
 	set src $argv[1]
 	set dst $argv[2]
 	set config_dir $argv[3]
-	set log_dir $argv[4]
-	set current_date (date +"%F_%T")
+
 	set cmd \
 		$copy_cmd \
-		--config-dir "$config_dir" \
-		--log-dir "$log_dir" \
+		--config-dir $config_dir \
 		$src \
 		$dst
 	run_with_output $cmd
@@ -95,53 +50,54 @@ function test_backup
 		tree_ext "$src"
 		tree_ext "$dst"
 	end
-	diff_ext "$src" "$dst/$current_date" | indent
+	diff_ext $src $dst | indent
 	or begin
 		echo "src and dst differ"
 		return 1
 	end
-	test -d "$log_dir"
+	test -d $config_dir/log
 	or begin
 		echo "log dir not existing"
 		return 1
 	end
-	test (count (ls_ext "$log_dir")) -ne 0
+	test (count (ls_ext "$config_dir/log")) -ne 0
 	or begin
 		echo "log dir is empty!"
 		return 1
 	end
 end
 
-function test_default_log_dir
+function test_separate_logdir
 	argparse \
 		"h/help" \
 		-- \
 		$argv
 	if set --query _flag_h
-		echo "copying directory"
+		echo "copy using separate log dir"
 		return
 	end
 	set src $argv[1]
 	set dst $argv[2]
 	set config_dir $argv[3]
-	set current_date (date +"%F_%T")
+	set log_dir $argv[4]
+
 	set cmd \
 		$copy_cmd \
-		--config-dir "$config_dir" \
+		--log-dir $log_dir \
+		--config-dir $config_dir \
 		$src \
 		$dst
-	run_with_output $cmd
 	if set --query verbose
 		tree_ext "$src"
 		tree_ext "$dst"
 	end
-	set log_dir "$config_dir/log"
-	diff_ext "$src" "$dst/$current_date" | indent
+	run_with_output $cmd
+	diff_ext $src $dst | indent
 	or begin
 		echo "src and dst differ"
 		return 1
 	end
-	test -d "$log_dir"
+	test -d $log_dir
 	or begin
 		echo "log dir not existing"
 		return 1
@@ -166,22 +122,30 @@ function test_simulate
 	set dst $argv[2]
 	set config_dir $argv[3]
 	set log_dir $argv[4]
-	set current_date (date +"%F_%T")
+
 	set cmd \
 		$copy_cmd \
 		--simulate \
-		--log-dir $log_dir \
+		--log-dir $log_dir\
 		--config-dir $config_dir \
 		$src \
 		$dst
 	run_with_output $cmd
-	# check: $dst empty
+	if set --query verbose
+		tree_ext "$src"
+		tree_ext "$dst"
+	end
+	# log dir should not be created or empty
+	test ! -d $log_dir; or test (count (ls -A "$log_dir")) -eq 0;
+	or begin
+		echo "log dir is not empty!"
+		return 1
+	end
 	test (count (ls_ext "$dst")) -eq 0
 	or begin
 		echo "dst is not empty"
 		return 1
 	end
-	# check: $log_dir empty
 	not test -d $log_dir
 	or begin
 		echo "log dir is not empty!"
@@ -209,7 +173,6 @@ function test_exclude
 	mkdir_ext "$src/$excluded_dir"
 	write_to_file_ext "excluded" "$src/$excluded_file"
 
-	set current_date (date +"%F_%T")
 	set cmd \
 		$copy_cmd \
 		--log-dir $log_dir \
@@ -219,13 +182,17 @@ function test_exclude
 		$src \
 		$dst
 	run_with_output $cmd
-	not diff_ext $src "$dst/$current_date" > /dev/null
+	if set --query verbose
+		tree_ext "$src"
+		tree_ext "$dst"
+	end
+	not diff_ext $src $dst > /dev/null
 	or begin
 		echo "excluded files have been copied"
 		return 1
 	end
 	set list_without_sorted (echo $list_without | xargs -n1 | sort)
-	set on_dest_sorted (ls_ext "$dst/$current_date" | xargs -n1 | sort)
+	set on_dest_sorted (ls_ext "$dst" | xargs -n1 | sort)
 	# echo "without: $list_without_sorted"
 	# echo "on dest: $on_dest_sorted"
 	diff (for l in $list_without_sorted; echo $l; end | psub) (for l in $on_dest_sorted; echo $l; end | psub)
@@ -267,7 +234,7 @@ else
 	if set --query _flag_verbose
 		set verbose 1
 	end
-	set copy_cmd backup.fish
+	set copy_cmd ct-copy.fish
 	if set --query _flag_install_dir
 		set copy_cmd $_flag_install_dir/$copy_cmd
 	end
