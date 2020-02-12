@@ -28,15 +28,27 @@ Might work on other OSes if all dependent tools are provided. So far only tested
 
 ## Dependencies
 
-- [fish shell](https://fishshell.com/)
+- [fishshell-cmd-opts](https://github.com/EsGeh/fishshell-cmd-opts)
 - [rsync](https://rsync.samba.org/)
 - [OpenSSH](https://www.openssh.com/) (only for non-local copying)
-- tree (linux command line utility)
+- tree (linux command line utility) (only for running the tests)
 
 ## Installation
 
-The scripts can be installed to some directory in PATH.
-Make shure the `utils` directories are to be found in the same relative location from the scripts needing them.
+### On arch linux: install using pacman
+
+- clone the repository
+- create package for pacman:
+
+		$ makepkg
+
+- install it:
+
+		$ makepkg -i
+
+### Install manually
+
+The scripts can be installed to some directory that is in your PATH.
 
 ## Implementation
 
@@ -93,7 +105,7 @@ To run the automated tests...:
 
 - if scripts not in $PATH:
 
-		$ ./test/ct-test-copy.fish -i .
-		$ ./test/ct-test-backup.fish -i .
+		$ ./ct-test-copy.fish -i .
+		$ ./ct-test-backup.fish -i .
 
 For further details append the the `--help` option to the command in question.

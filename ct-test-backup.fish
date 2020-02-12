@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-source (dirname (status -f))/utils/test_utils.fish
+source (dirname (status -f))/__ct_test_utils.fish
 
 set tests \
 	test_cmdline \

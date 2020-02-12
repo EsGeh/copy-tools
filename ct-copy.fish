@@ -8,7 +8,7 @@
 # - call with "--help" or "-h" for arguments
 #####################################################
 
-source (dirname (status -f))/utils/utils.fish
+source (dirname (status -f))/__ct_utils.fish
 
 #####################################################
 # variables:
