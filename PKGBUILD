@@ -1,5 +1,5 @@
 pkgname=copy-tools
-pkgver=0.1
+pkgver=0.2
 pkgrel=1
 pkgdesc="Experimental scripts for copying directories and making incremental backups"
 arch=("any")

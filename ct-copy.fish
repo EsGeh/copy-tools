@@ -176,6 +176,15 @@ set rsync_args $rsync_args \
 	"$src/" \
 	"$dst/"
 
+# make shure both machines are synchronous:
+if set --query remote
+	set -l both_times (with_ssh "$ssh_socket" "$remote" date '+%F_%T'; and date '+%F_%T')
+	if test "$both_times[1]" != "$both_times[2]"
+		output "ERROR: machines are out of sync! (local time: '$both_times[2]', remote time: '$both_times[1]')"
+		exit 1
+	end
+end
+
 output "executing: 'rsync $rsync_args 2>&1'"
 rsync -e "ssh -o ControlPath='$ssh_socket'" $rsync_args 2>&1
 and begin

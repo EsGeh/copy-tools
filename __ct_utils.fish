@@ -36,7 +36,6 @@ function with_ssh \
 		--argument-names socket location
 	if location_is_remote $location
 		set -l login (ssh_location_to_ssh_login $location)
-		output "running via ssh on '$login' (socket: '$socket'): $argv[3..-1]"
 		ssh -o ControlPath="$socket" "$login" $argv[3..-1]
 	else
 		if test (count $argv) != 2
