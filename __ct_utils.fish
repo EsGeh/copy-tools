@@ -76,11 +76,7 @@ end
 
 # usage: "as_normal_user <cmd> <args>"
 function as_normal_user
-	if test $normal_user = $USER
-		sudo -u $normal_user $argv
-	else
-		eval $argv
-	end
+	sudo -u "$normal_user" $argv
 end
 
 function location_is_remote

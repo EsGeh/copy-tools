@@ -73,7 +73,7 @@ The provided commands are copy tools which copy data from some `SRC` to a `DST`.
 
 For further details append the the `--help` option to the command in question.
 
-## Prevent typing SSH Logins and Passphrases
+## Avoid typing SSH Logins and Passphrases
 
 When copying between remote locations, ssh has to be correctly configured.
 To avoid cumbersome typing, I'd recommend to:

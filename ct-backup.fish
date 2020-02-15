@@ -22,12 +22,12 @@ set config_dir '.backup' # default
 set options_with_descr \
 	'h/help/print help' \
 	'p/print-opts/print all options' \
-	's/simulate/do not copy files (adds \'--dry-run\' to rsync options)' \
-	'x/exclude=+/' \
-	'u/user=/non-root user' \
+	"s/simulate/emulate copying but do not write any files (except '\$CONFIG_DIR')" \
+	'x/exclude=+/exclude these directories/files from copying' \
+	'n/non-root=/if specified, logs are owned and written by this user instead of the current one' \
 	'c/ssh-conn=/use existing ssh-connection' \
-	"d/config-dir=/directory where to save ssh connections. default: '$config_dir' (in users HOME)" \
-	"l/log-dir=/where to store log files" \
+	"d/config-dir=/directory where to save ssh connections. Default: '\$HOME/$config_dir'" \
+	"l/log-dir=/where to store log files. Default: '\$CONFIG_DIR/log'" \
 	"r/rsync-option=+/rsync option to add" \
 	"z/break-after=+/for debugging: exit after one of these actions: 'copy'"
 
@@ -41,7 +41,7 @@ function print_help
 	echo "usage: "(status -f)" [OPTIONS...] SRC DST"
 	echo "DESCRIPTION:"
 	echo " copies data from SRC to DST. This operation is interruptable, and uses differential backups"
-	echo " ! SRC mst be local, DST can be a remote location reachable via ssh"
+	echo " ! SRC mst be local, DST can be a remote location reachable via ssh !"
 	echo "DETAILS:"
 	echo " - temporary log file: \$log_dir/running_backup.log"
 	echo " - temporary destination: \$DST/running_backup"
@@ -85,10 +85,10 @@ else
 		set src $argv[1]
 		set dst $argv[2]
 	end
-	if set -q _flag_user
-		set normal_user $_flag_user
+	if set -q _flag_non_root
+		set normal_user "$_flag_non_root"
 	else
-		set normal_user $USER
+		set normal_user "$USER"
 	end
 	if set -q _flag_config_dir
 		set config_dir $_flag_config_dir
@@ -174,7 +174,7 @@ end
 
 set copy_options \
 	--print-opts \
-	--user=$normal_user \
+	--non-root=$normal_user \
 	--ssh-conn=$ssh_socket \
 	--config-dir=$config_dir \
 	--log-file=$log_file \

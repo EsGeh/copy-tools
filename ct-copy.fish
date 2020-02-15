@@ -25,13 +25,13 @@ set config_dir '.mirror' # remark: this is interpreted relative to "normal_user"
 set options_with_descr \
 	'h/help/print help' \
 	'p/print-opts/print all options' \
-	's/simulate/do not copy files (adds \'--dry-run\' to rsync options)' \
-	'x/exclude=+/' \
-	'u/user=/non-root user' \
+	"s/simulate/emulate copying but do not write any files (except '\$CONFIG_DIR')" \
+	'x/exclude=+/exclude these directories/files from copying' \
+	'n/non-root=/if specified, logs are owned and written by this user instead of the current one' \
 	'c/ssh-conn=/use existing ssh-connection' \
-	"d/config-dir=/directory where to save ssh connections. default: '$config_dir' (in users HOME)" \
-	"l/log-dir=/where to store log files" \
-	"z/log-file=/use existing log-file" \
+	"d/config-dir=/directory where to save ssh connections. Default: '\$HOME/$config_dir'" \
+	"l/log-dir=/where to store log files. Default: '\$CONFIG_DIR/log'" \
+	"z/log-file=/log to this file. Default: '\$LOG_DIR/<date>_<time>'" \
 	"r/rsync-option=+/rsync option to add"
 
 set options (options_descr_to_argparse $options_with_descr)
@@ -42,6 +42,13 @@ set options (options_descr_to_argparse $options_with_descr)
 
 function print_help
 	echo "usage: "(status -f)" [OPTIONS...] SRC DST"
+	echo "DESCRIPTION:"
+	echo "  copy SRC to DST using rsync. Logs and"
+	echo "  temporary files are created on local host"
+	echo "ARGUMENTS:"
+	echo "  SRC, DST: valid paths. One of the locations"
+	echo "    may be a remote location given in rsync"
+	echo "    syntax (e.g. 'user@host:/some/path')"
 	echo "OPTIONS:"
 	print_options_descr $options_with_descr
 end
@@ -64,7 +71,6 @@ else
 		set excluded_dirs $excluded_dirs $_flag_exclude
 	end
 	if set -q _flag_simulate
-		# set -g _flag_simulate # make flag global!
 		set simulate
 		set rsync_options $rsync_options "--dry-run"
 	end
@@ -76,17 +82,20 @@ else
 		set src $argv[1]
 		set dst $argv[2]
 	end
-	if set -q _flag_user
-		set normal_user $_flag_user
+	# normal_user:
+	if set -q _flag_non_root
+		set normal_user "$_flag_non_root"
 	else
-		set normal_user $USER
+		set normal_user "$USER"
 	end
+	# config_dir:
 	if set -q _flag_config_dir
 		set config_dir $_flag_config_dir
 	else
 		# set up config in the non-root users home:
-		set config_dir (as_normal_user fish -c "echo ~/$config_dir")
+		set config_dir (as_normal_user eval echo '$HOME'"$config_dir")
 	end
+	# log_dir, log_file:
 	if set -q _flag_log_file
 		set log_file $_flag_log_file
 		set log_dir (dirname $_flag_log_file)
@@ -118,13 +127,12 @@ else if location_is_remote "$dst"
 	set remote $dst
 end
 
-# create config and log directorys
-# needed even in simulate mode
-# because we need to store the
+# create config and log directorys:
+
+# $config_dir is needed even in
+# simulate mode to store the
 # ssh connection!
-# if not set -q simulate
 as_normal_user mkdir -p -v "$config_dir"
-# end
 
 if not set -q simulate
 	as_normal_user mkdir -p -v "$log_dir"
@@ -189,12 +197,6 @@ output "executing: 'rsync $rsync_args 2>&1'"
 rsync -e "ssh -o ControlPath='$ssh_socket'" $rsync_args 2>&1
 and begin
 	output "rsync done. all files copied successfully!"
-	# if not set -q simulate
-		# rename log file
-		# set old_log "$log_file"
-		# set log_file "$log_dir/$current_date".log
-		# as_normal_user mv -v "$old_log" "$log_file" | to_output
-	# end
 	output (status -f)" done"
 	# ssh_exit
 	exit 0
