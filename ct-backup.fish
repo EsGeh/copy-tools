@@ -28,7 +28,7 @@ set options_with_descr \
 	'c/ssh-conn=/use existing ssh-connection' \
 	"d/config-dir=/directory where to save ssh connections. Default: '\$HOME/$config_dir'" \
 	"l/log-dir=/where to store log files. Default: '\$CONFIG_DIR/log'" \
-	"r/rsync-option=+/rsync option to add" \
+	"r/rsync-option=+/set rsync options" \
 	"z/break-after=+/for debugging: exit after one of these actions: 'copy'"
 
 set options (options_descr_to_argparse $options_with_descr)

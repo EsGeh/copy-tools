@@ -18,7 +18,7 @@ set current_date (date +"%F_%T")
 
 # default values
 
-set rsync_options "-a" "-A" "-X" "-i" "-H" "-u" "--delete"
+set rsync_options "-a" "-A" "-X" "-H" "--itemize-changes" "--update" "--delete"
 
 set config_dir '.mirror' # remark: this is interpreted relative to "normal_user"
 
@@ -32,7 +32,7 @@ set options_with_descr \
 	"d/config-dir=/directory where to save ssh connections. Default: '\$HOME/$config_dir'" \
 	"l/log-dir=/where to store log files. Default: '\$CONFIG_DIR/log'" \
 	"z/log-file=/log to this file. Default: '\$LOG_DIR/<date>_<time>'" \
-	"r/rsync-option=+/rsync option to add"
+	"r/rsync-option=+/set rsync options. Default: $rsync_options"
 
 set options (options_descr_to_argparse $options_with_descr)
 
@@ -70,6 +70,9 @@ else
 	if set -q _flag_exclude
 		set excluded_dirs $excluded_dirs $_flag_exclude
 	end
+	if set -q _flag_rsync_option
+		set rsync_options $_flag_rsync_option
+	end
 	if set -q _flag_simulate
 		set simulate
 		set rsync_options $rsync_options "--dry-run"
@@ -106,9 +109,6 @@ else
 			set log_dir $config_dir"/log"
 		end
 		set log_file "$log_dir/$current_date"
-	end
-	if set -q _flag_rsync_option
-		set rsync_options $rsync_options $_flag_rsync_option
 	end
 	set ssh_socket "$config_dir/copy_ssh-socket-$current_date"
 	if set -q _flag_ssh_conn
