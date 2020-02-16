@@ -19,6 +19,8 @@ set script_dir (dirname (status -f))
 
 set config_dir '.backup' # default
 
+set rsync_options "-a" "-A" "-X" "-H" "--itemize-changes" "--update" "--delete"
+
 set options_with_descr \
 	'h/help/print help' \
 	'p/print-opts/print all options' \
@@ -75,7 +77,6 @@ else
 	if set -q _flag_simulate
 		# set -g _flag_simulate # make flag global!
 		set simulate
-		set rsync_options $rsync_options "--dry-run"
 	end
 	# set src and dst:
 	if test (count $argv) -ne 2
@@ -102,7 +103,7 @@ else
 		set log_dir $config_dir"/log"
 	end
 	if set -q _flag_rsync_option
-		set rsync_options $rsync_options $_flag_rsync_option
+		set rsync_options $_flag_rsync_option
 	end
 	set ssh_socket "$config_dir/backup_ssh-socket-$current_date"
 	if set -q _flag_ssh_conn
@@ -125,9 +126,10 @@ else if location_is_remote "$dst"
 end
 
 # create config and log directorys
-# if not set -q simulate
-	as_normal_user mkdir -p -v "$config_dir"
-# end
+# $config_dir is needed even in
+# simulate mode to store the
+# ssh connection!
+as_normal_user mkdir -p -v "$config_dir"
 
 if not set -q simulate
 	as_normal_user mkdir -p -v "$log_dir"
