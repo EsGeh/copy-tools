@@ -122,7 +122,7 @@ if location_is_remote "$src"
 	end
 	set remote "$src"
 else if location_is_remote "$dst"
-	set remote $dst
+	set remote "$dst"
 end
 
 # create config and log directorys
@@ -177,11 +177,14 @@ end
 set copy_options \
 	--print-opts \
 	--non-root=$normal_user \
-	--ssh-conn=$ssh_socket \
 	--config-dir=$config_dir \
 	--log-file=$log_file \
 	--exclude={$excluded_dirs} \
 	--rsync-option={$rsync_options}
+
+if test "$remote" != ""
+	set --append copy_options --ssh-conn="$ssh_socket"
+end
 
 if set -q simulate
 	set copy_options $copy_options "--simulate"
@@ -191,10 +194,11 @@ end
 output "running: '$script_dir/copy.fish $copy_options $src $dst/running_backup'"
 
 $script_dir/ct-copy.fish $copy_options "$src" "$dst/running_backup"
+set copy_ret "$status"
 if test "$break_after" = 'copy'
 	exit
 end
-if test $status -eq 0
+if test $copy_ret -eq 0
 	output "copy SUCCESS"
 	if not set -q simulate
 		set old_log "$log_file"
