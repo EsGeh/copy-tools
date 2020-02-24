@@ -4,7 +4,7 @@
 # test utils:
 ###################################
 
-function output
+function test_output
 	if set --query verbose
 		if test (count $argv) -ne 0
 			echo $argv | indent 1>&2
@@ -120,11 +120,11 @@ end
 
 function run_with_output
 	set tmp_output (mktemp)
-	output "executing '$argv'"
+	test_output "executing '$argv'"
 	$argv > $tmp_output
 	and begin
 		if set --query verbose
-			output "output:"
+			test_output "output:"
 			cat $tmp_output | indent '  > '
 		end
 		rm $tmp_output
@@ -132,7 +132,7 @@ function run_with_output
 	or begin
 		echo "command failed"
 		if set --query verbose
-			output "output:"
+			test_output "output:"
 			cat $tmp_output | indent '  > '
 		end
 		rm $tmp_output
@@ -208,7 +208,7 @@ end
 
 function setup_tmp_dir
 	set -l tmp_dir (mktemp -d)
-	output "created '$tmp_dir'"
+	test_output "created '$tmp_dir'"
 	set -l src $tmp_dir/src
 	set -l dst $tmp_dir/dst
 	mkdir $src

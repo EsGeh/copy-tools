@@ -132,7 +132,7 @@ function parse_ssh_location
 	echo $path
 end
 
-# assemble 'user' 'hoser' 'path' into 
+# assemble 'user' 'host' 'path' into 
 # a valid argument for ssh or scp
 function assemble_ssh_location
 	argparse \
