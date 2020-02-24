@@ -210,5 +210,5 @@ switch $rsync_ret
 		output "rsync returned '$status'"
 		output "rsync failed!"
 		# ssh_exit
-		exit $rsync_ret
+		exit 1
 end
