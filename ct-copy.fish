@@ -194,16 +194,21 @@ if set --query remote
 end
 
 output "executing: 'rsync $rsync_args 2>&1'"
-rsync -e "ssh -o ControlPath='$ssh_socket'" $rsync_args 2>&1
-and begin
-	output "rsync done. all files copied successfully!"
-	output (status -f)" done"
-	# ssh_exit
-	exit 0
+if test "$remote" != ""
+	rsync -e "ssh -o ControlPath='$ssh_socket'" $rsync_args 2>&1
+else
+	rsync $rsync_args 2>&1
 end
-or begin
-	set rsync_ret $status
-	output "rsync failed!"
-	# ssh_exit
-	exit $rsync_ret
+set rsync_ret "$status"
+switch $rsync_ret
+	case 0
+		output "rsync done. all files copied successfully!"
+		output (status -f)" done"
+		# ssh_exit
+		exit 0
+	case '*'
+		output "rsync returned '$status'"
+		output "rsync failed!"
+		# ssh_exit
+		exit $rsync_ret
 end
